@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEditor;
 using UnityEditorInternal;
+using System.IO;
 
 [CustomEditor(typeof(LevelData))]
 public class LevelDataEditor : Editor
@@ -40,7 +41,7 @@ public class LevelDataEditor : Editor
 		};
 
 		list.onRemoveCallback = (ReorderableList l) => {
-			if (EditorUtility.DisplayDialog("Warning!", "Are you sure you want to delete the wave?", "Maybe", "No"))
+			if (EditorUtility.DisplayDialog("Warning!", "Are you sure you want to delete the wave?", "Yes", "No"))
 			{
 				ReorderableList.defaultBehaviours.DoRemoveButton(l);
 			}
@@ -57,6 +58,27 @@ public class LevelDataEditor : Editor
 					AssetDatabase.LoadAssetAtPath("Assets/Prefab/Mobs/Cube.prefab",
 					typeof(GameObject)) as GameObject;
 		};
+
+		list.onAddDropdownCallback = (Rect buttonRect, ReorderableList l) => {
+			var menu = new GenericMenu();
+			var guids = AssetDatabase.FindAssets("", new[] { "Assets/Prefab/Mobs" });
+			foreach (var guid in guids)
+			{
+				var path = AssetDatabase.GUIDToAssetPath(guid);
+				menu.AddItem(new GUIContent("Mobs/" + Path.GetFileNameWithoutExtension(path)),
+				false, clickHandler,
+				new WaveCreationParams() { Type = MobWave.WaveType.Mobs, Path = path });
+			}
+			guids = AssetDatabase.FindAssets("", new[] { "Assets/Prefab/Boss" });
+			foreach (var guid in guids)
+			{
+				var path = AssetDatabase.GUIDToAssetPath(guid);
+				menu.AddItem(new GUIContent("Boss/" + Path.GetFileNameWithoutExtension(path)),
+				false, clickHandler,
+				new WaveCreationParams() { Type = MobWave.WaveType.Boss, Path = path });
+			}
+			menu.ShowAsContext();
+		};
 	}
 
 	public override void OnInspectorGUI()
@@ -65,4 +87,26 @@ public class LevelDataEditor : Editor
 		list.DoLayoutList();
 		serializedObject.ApplyModifiedProperties();
 	}
+
+	private void clickHandler(object target) 
+	{
+		var data = (WaveCreationParams)target;
+		var index = list.serializedProperty.arraySize;
+		list.serializedProperty.arraySize++;
+		list.index = index;
+		var element = list.serializedProperty.GetArrayElementAtIndex(index);
+		element.FindPropertyRelative("Type").enumValueIndex = (int)data.Type;
+		element.FindPropertyRelative("Count").intValue =
+			data.Type == MobWave.WaveType.Boss ? 1 : 20;
+		element.FindPropertyRelative("Prefab").objectReferenceValue =
+			AssetDatabase.LoadAssetAtPath(data.Path, typeof(GameObject)) as GameObject;
+		serializedObject.ApplyModifiedProperties();
+	}
+
+	private struct WaveCreationParams
+	{
+		public MobWave.WaveType Type;
+		public string Path;
+	}
+
 }

@@ -277,6 +277,12 @@ MonoBehaviour:
   - Type: 0
     Prefab: {fileID: 789541113396177067, guid: efe55ceb80be7e94bad8676d2c461fb0, type: 3}
     Count: 20
+  - Type: 1
+    Prefab: {fileID: 2149547691660912358, guid: c16656475ae7c6648847dfa09993e19b, type: 3}
+    Count: 1
+  - Type: 0
+    Prefab: {fileID: 789541113396177067, guid: efe55ceb80be7e94bad8676d2c461fb0, type: 3}
+    Count: 20
 --- !u!1 &963194225
 GameObject:
   m_ObjectHideFlags: 0
